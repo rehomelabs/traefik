@@ -1,0 +1,50 @@
+services:
+  step-ca:
+    image: smallstep/step-ca:0.30.2
+    container_name: stepca
+    restart: unless-stopped
+
+    environment:
+      - DOCKER_STEPCA_INIT_NAME=${DOCKER_STEPCA_INIT_NAME}
+      - DOCKER_STEPCA_INIT_DNS_NAMES=${DOCKER_STEPCA_INIT_DNS_NAMES}
+      - DOCKER_STEPCA_INIT_ACME=${DOCKER_STEPCA_INIT_ACME}
+      - DOCKER_STEPCA_INIT_PASSWORD=${DOCKER_STEPCA_INIT_PASSWORD}
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'step ca health --ca-url https://your.private.domain:9000 2>/dev/null | grep "^ok" >/dev/null'   ## Update the URL with your own domain
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik  ## Update this with your Traefik Docker Network
+
+      - traefik.http.routers.stepca.service=stepca
+      - traefik.http.routers.stepca.tls=true
+      - traefik.http.routers.stepca.tls.certresolver=stepca
+      - traefik.http.routers.stepca.entrypoints=websecure
+      - traefik.http.routers.stepca.rule=Host(`ca.your.private.domain`)  ## Update the URL with your own domain
+
+      - traefik.http.services.stepca.loadbalancer.server.port=9000
+      - traefik.http.services.stepca.loadbalancer.server.scheme=https
+      - traefik.http.services.stepca.loadbalancer.serversTransport=stepca-transport@file
+
+    volumes:
+      - /path/to/stepca/step-ca:/home/step  ## Update with your directory 
+
+    networks:
+      traefik: ## Update with your traefik network
+      acme:
+        aliases:
+          - stepca.homelab  ## Update with your own entry if desired (docker dns)
+
+networks:
+  traefik: ## Update with your traefik network
+    external: true
+  acme:
+
+

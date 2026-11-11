@@ -1,0 +1,6 @@
+http:
+  serversTransports:
+    stepca-transport:
+      serverName: your.private.domain
+      rootCAs:
+        - /var/traefik/certs/root_ca.crt

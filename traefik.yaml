@@ -1,0 +1,42 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+log:
+  level: INFO
+
+api:
+  dashboard: true
+  insecure: false
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+    transport:
+      respondingTimeouts:
+        readTimeout: 60s
+        writeTimeout: 60s
+        idleTimeout: 180s
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: traefik  # Put whatever Traefik Docker Network you made
+
+  file:
+    filename: /etc/traefik/dynamic_conf.yml
+    watch: true
+
+certificatesResolvers:
+  stepca:
+    acme:
+      email: admin@rehomelabs.com
+      caServer: "https://your.private.domain:9000/acme/acme/directory"  ##Be sure to update this line
+      storage: /var/traefik/certs/stepca-acme.json  # this file gets made automatically when traefik boots
+      certificatesDuration: 2160 ## This is in hours which is 90 days
+      caCertificates:
+        - /var/traefik/certs/root_ca.crt
+      tlsChallenge: {}

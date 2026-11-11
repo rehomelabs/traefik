@@ -1,0 +1,4 @@
+Command to opy cert from SmallStepCA Cert directory to the Traefik Cert directory, you will need to modify
+
+
+sudo cp /path/to/your/smallstepca/certs/root_ca.crt root_ca.crt

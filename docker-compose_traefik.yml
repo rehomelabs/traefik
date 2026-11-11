@@ -1,0 +1,33 @@
+services:
+  traefik:
+    image: traefik:v3.7.17
+    container_name: traefik
+
+    ports:
+      - "443:443"
+
+    networks:
+      - traefik ## Update this with your Traefik Docker Network
+      - smallstepca_acme ## Update this with your SmallStep Docker Network
+
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.dashboard-private.service=api@internal
+      - traefik.http.routers.dashboard-private.tls=true
+      - traefik.http.routers.dashboard-private.tls.certresolver=stepca
+      - traefik.http.routers.dashboard-private.entrypoints=websecure
+      - traefik.http.routers.dashboard-private.rule=Host(`your.private.domain`) ## Update the URL with your own domain
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /path/on/your/host/config/traefik.yaml:/etc/traefik/traefik.yaml:ro
+      - /path/on/your/host/config/dynamic_conf.yml:/etc/traefik/dynamic_conf.yml:ro
+      - /path/on/your/host/certs/:/var/traefik/certs/:rw
+
+    restart: unless-stopped
+
+networks:
+  traefik: ## Update this with your Traefik Docker Network
+    external: true
+  smallstepca_acme: ## Update this with your SmallStep Docker Network
+    external: true
